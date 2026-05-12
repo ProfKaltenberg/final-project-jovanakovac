@@ -1,0 +1,58 @@
+---
+title: "Final"
+date: "2026-05-12"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r}
+#packages
+library(dplyr)
+library(tidyverse)
+library(estimatr)
+library(stargazer)
+```
+```{r}
+#Setting working directory to where the csv file is saved
+setwd("/Users/jovanakovac/Documents/Eco590/Data_Analysis_Python_R/final-project-jovanakovac")
+
+world_data <- read.csv("world_data.csv")
+options(scipen = 100)
+```
+```{r}
+#Regression 1: Does log GDP per capita predict life expectancy,
+#Controlling for unemployment rate and health expenditure
+#Log GDP is used because the relationship between income and life expectancy is not linear
+
+ols <- lm(life_expectancy ~ log_gdp + unemployment_rate + health_expenditure, data = world_data)
+summary(ols)
+
+print(colnames(world_data))
+```
+```{r}
+#Regression 2: Filtering for countries with above average GDP per capita
+#Isolating wealthier countries to see if the relationship still holds within this group
+world_high <- world_data[world_data$log_gdp > mean(world_data$log_gdp, na.rm = TRUE),]
+ols_high <- lm(life_expectancy ~ log_gdp + unemployment_rate + health_expenditure + log_gdp:health_expenditure, data = world_high)
+summary(ols_high)
+```
+
+```{r}
+ols_p <- lm(life_expectancy ~ log_gdp + unemployment_rate + health_expenditure, data = world_data)
+summary(ols_p)
+```
+```{r}
+#Displaying all regressions together
+stargazer(ols, ols_high, type="text",
+          title = "Life Expectancy Regression Results",
+          dep.var.labels = c("Life Expectancy", "Life Expectancy (High GDP)"),
+          covariate.labels = c("Log GDP per Capita", "Unemployment Rate", "Health Expenditure", "Log GDP x Health Expenditure"))
+```
+
+## Interpretation
+
+Regression 1 shows that holding unemployment rate and health expenditure constant, a one percent increase in GDP per capita is associated with 1.555 additional years of life expectancy. This result is statistically significant at the 1% level. Unemployment rate is not statistically significant. Health expenditure is positive and statistically significant.
+
+Regression 2 is the preferred regression. It filters for countries with above-average GDP per capita and adds an interaction term between log GDP and health expenditure. The interaction term is positive and significant at the 5% level, suggesting that in wealthier countries, the combined effect of GDP and health spending is stronger. This is the preferred regression.
